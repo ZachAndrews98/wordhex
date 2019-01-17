@@ -41,22 +41,23 @@ if __name__ == "__main__":
     display.tracer(0,0)
     pen.up()
     pen.goto(-300,-100)
-    length = (int)(display.screensize()[0]/len(hex_dec))
+    cell_length = 100
     width = (int)(display.screensize()[1])
+    display.screensize(cell_length*len(hex_dec),width)
     for color in hex_dec:
         if len(color) is 6:
             pen.fillcolor('#'+color)
             pen.down()
             pen.begin_fill()
-            pen.forward(length)
+            pen.forward(cell_length)
             pen.left(90)
             pen.forward(width)
             pen.left(90)
-            pen.forward(length)
+            pen.forward(cell_length)
             pen.left(90)
             pen.forward(width)
             pen.left(90)
-            pen.forward(length)
+            pen.forward(cell_length)
             pen.up()
             pen.end_fill()
         else:
