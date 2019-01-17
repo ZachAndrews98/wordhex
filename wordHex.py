@@ -1,4 +1,6 @@
 import turtle
+import subprocess
+import os
 # dictionary of 4 digit binary numbers and their hex equivalent
 hex_keys = {
     "0000":"0","0001":"1","0010":"2","0011":"3","0100":"4","0101":"5","0110":"6",
@@ -61,10 +63,12 @@ if __name__ == "__main__":
             pen.write('+'+color,True,align="left",font=("Arial",16,"normal"))
             pen.up()
             pen.forward(10)
-    # allows user to save canvas as a .ps file (too lazy to do nice file type like .png)
+    # saves the canvas as a ps then uses gs to convert to a png
     save = str(input("Would you like to save the image (yes/no)?\n"))
     if save == "yes":
         cv = display.getcanvas()
         name = str(input("What would you like to name the file?\n"))
         cv.postscript(file= name+".ps", colormode='color')
+        subprocess.call('gs -r300 -dTextAlphaBits=4 -sDEVICE=png16m -sOutputFile='+name+'.png -dBATCH -dNOPAUSE '+name+'.ps', shell=True)
+        os.remove(name+'.ps')
     display.exitonclick()
