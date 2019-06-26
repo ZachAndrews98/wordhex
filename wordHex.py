@@ -72,4 +72,7 @@ if __name__ == "__main__":
         cv.postscript(file= name+".ps", colormode='color')
         subprocess.call('gs -r300 -dTextAlphaBits=4 -sDEVICE=png16m -sOutputFile='+name+'.png -dBATCH -dNOPAUSE '+name+'.ps', shell=True)
         os.remove(name+'.ps')
-    display.exitonclick()
+    try:
+        display.exitonclick()
+    except:
+        pass

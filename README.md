@@ -6,7 +6,7 @@ a little experience writing in python), probably could be done better.
 
 ## Execution
 
-**This program requires GhostScript**
+**This program requires GhostScript and python3-tk**
 
 Fairly straight forward, just execute like any other python3 program.
 
@@ -22,7 +22,8 @@ one exists. Then the user will be prompted if they want to save the canvas
 (simple yes/no question). If yes, then the user will be asked to enter a file
 name, the canvas will then be saved in a .ps file with that name, if a file with
 that name already exists, the old file will be overwritten. This file is then
-converted to a .png by gs and then deleted.
+converted to a .png by gs and then deleted. The canvas must be open for the
+image to be saved, if you close it before saving it will not work.
 
 ## Improvements
 
