@@ -12,17 +12,20 @@ if __name__ == "__main__":
     binary = ""
     # convert word/phrase to binary equivalent
     for letter in word:
-        print("'" + letter + "'= 0" + format(ord(letter),'b'))
-        binary += "0"+ format(ord(letter),'b')
+        b_letter = "0"+ format(ord(letter),'b')
+        while len(b_letter) < 8:
+            b_letter = "0" + b_letter
+        print("'" + letter + "'= " + b_letter)
+        binary += b_letter
     print("Decimal Number: " + str(int(binary,2)))
     print("Binary Number: " + binary)
     # breaks up binary string into groups of 4 digits
     binary = [binary[i:i + 4] for i in range(0, len(binary), 4)]
     # adds 0s to beginning of any groups that have less than 4 digits
-    for x in range(len(binary)):
-        if len(binary[x]) < 4:
-            while len(binary[x]) < 4:
-                binary[x] = "0" + binary[x]
+    # for x in range(len(binary)):
+        # if len(binary[x]) < 4:
+        #     while len(binary[x]) < 4:
+        #         binary[x] = "0" + binary[x]
     print("Binary Groups", end=': ')
     print(binary)
     hex_dec = ""
