@@ -40,13 +40,14 @@ if __name__ == "__main__":
     # turtle operations for drawing each color onto the canvas
     display = turtle.Screen()
     pen = turtle.Turtle()
+    display.screensize(canvwidth=500,canvheight=250)
+    height = int((display.screensize()[1]))
+    cell_length = int(display.screensize()[0] / len(hex_dec))
+    display.setworldcoordinates(0,0,500,500)
     pen.speed(0)
     display.tracer(0,0)
     pen.up()
-    pen.goto(-300,-100)
-    cell_length = 100
-    width = (int)(display.screensize()[1])
-    display.screensize(cell_length*len(hex_dec),width)
+    pen.goto(0,0)
     for color in hex_dec:
         if len(color) is 6:
             pen.fillcolor('#'+color)
@@ -54,11 +55,11 @@ if __name__ == "__main__":
             pen.begin_fill()
             pen.forward(cell_length)
             pen.left(90)
-            pen.forward(width)
+            pen.forward(height)
             pen.left(90)
             pen.forward(cell_length)
             pen.left(90)
-            pen.forward(width)
+            pen.forward(height)
             pen.left(90)
             pen.forward(cell_length)
             pen.up()

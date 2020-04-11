@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+  var hex_keys = {
+    "0000":"0","0001":"1","0010":"2","0011":"3","0100":"4","0101":"5","0110":"6",
+    "0111":"7","1000":"8","1001":"9","1010":"A","1011":"B","1100":"C","1101":"D",
+    "1110":"E","1111":"F"
+  }
+  var hex_groups;
+  var extra;
+  function wordHex() {
+    clear()
+    // console.log(document.getElementsByName("input").value);
+    var word = document.getElementById("input").value;
+    // console.log(word);
+    // console.log("Hello World");
+    var binary = "";
+    for (letter in word) {
+      var b_letter = word[letter].charCodeAt(0).toString(2);
+      while (b_letter.length < 8){
+        b_letter = "0" + b_letter;
+      }
+      binary += b_letter
+      // console.log(b_letter);
+    }
+    // console.log(binary);
+    hex_groups = binary.match(/.{1,4}/g)
+    // console.log(hex_groups);
+    var hex = "";
+    for (group in hex_groups) {
+      hex += hex_keys[hex_groups[group]];
+    }
+    // console.log(hex);
+    hex_groups = hex.match(/.{1,6}/g);
+    console.log(hex_groups)
+    paint();
+  }
+
+  function paint(){
+    var width = document.getElementById('color-container').clientWidth;
+    var height = document.getElementById('color-container').offsetHeight;
+    console.log(height);
+    var element_size = width / hex_groups.length
+    for (color in hex_groups) {
+      var name = 'test' + color;
+      var div = document.createElement("div")
+      div.setAttribute('id',name)
+      div.style.float = "left";
+      div.style.width = element_size+"px";
+      div.style.height = height+"px";
+      if (hex_groups[color].length == 6)
+        div.style.background = "#" + hex_groups[color];
+      else
+        div.innerHTML = "<h1 style='margin: 0; position: absolute; top: 50%; left: 50%;'>+"+hex_groups[color]+"</h1>";
+      document.getElementById('color-container').appendChild(div)
+      console.log(element_size);
+    }
+  }
+
+  function clear(){
+    const myNode = document.getElementById("color-container");
+    while (myNode.firstChild) {
+      myNode.removeChild(myNode.firstChild);
+    }
+  }
+</script>
+<title>Wordhex test</title>
+</head>
+<body>
+<p>Enter a word</p>
+<input type="text" id="input" value="">
+<button type="button" name="button" onclick="wordHex()">Click me</button>
+<div id="color-container" style="margin-left:100px; margin-right:100px; width: auto; height: 500px">
+</div>
+</body>
+</html>
