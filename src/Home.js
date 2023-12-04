@@ -5,6 +5,7 @@ import Row from 'react-bootstrap/Row';
 // import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import { toPng } from 'html-to-image';
 
 import Cell from './Cell'
 
@@ -12,9 +13,24 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 //<Cell color={"blue"} width={100} height={100} />
 //<Cell color={"red"} width={100} height={100} />
-
+function getImage() {
+  let elementRef = React.useRef("colorize");
+  let htmlToImageConvert = () => {
+    toPng(elementRef.current, { cacheBust: false })
+      .then((dataUrl) => {
+        const link = document.createElement("a");
+        link.download = "colorize.png";
+        link.href = dataUrl;
+        link.click();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+}
 
 export default class Home extends React.Component {
+  // elementRef = React.useRef("colorize");
   constructor(props) {
     super(props)
     this.state = {
@@ -24,11 +40,12 @@ export default class Home extends React.Component {
     this.setWordChange = this.setWordChange.bind(this)
     this.colorize = this.colorize.bind(this)
     this.enterPress = this.enterPress.bind(this)
+    this.htmlToImageConvert = this.htmlToImageConvert.bind(this)
   }
 
   setWordChange(event) {
     // console.log(event.target.value)
-    this.setState({word: event.target.value})
+    this.setState({ word: event.target.value })
   }
 
   enterPress(event) {
@@ -40,16 +57,16 @@ export default class Home extends React.Component {
 
   colorize() {
     if (this.state.word !== '') {
-      this.setState({groups: []})
+      this.setState({ groups: [] })
       let hex_keys = {
-        "0000":"0","0001":"1","0010":"2","0011":"3","0100":"4","0101":"5","0110":"6",
-        "0111":"7","1000":"8","1001":"9","1010":"A","1011":"B","1100":"C","1101":"D",
-        "1110":"E","1111":"F"
+        "0000": "0", "0001": "1", "0010": "2", "0011": "3", "0100": "4", "0101": "5", "0110": "6",
+        "0111": "7", "1000": "8", "1001": "9", "1010": "A", "1011": "B", "1100": "C", "1101": "D",
+        "1110": "E", "1111": "F"
       }
       let binary = "";
       for (let letter in this.state.word) {
         let b_letter = this.state.word[letter].charCodeAt(0).toString(2);
-        while (b_letter.length < 8){
+        while (b_letter.length < 8) {
           b_letter = "0" + b_letter;
         }
         binary += b_letter
@@ -65,31 +82,36 @@ export default class Home extends React.Component {
       // console.log(hex);
       hex_groups = hex.match(/.{1,6}/g);
       console.log(hex_groups)
-      this.setState({groups: hex_groups})
-      this.setState({word: ''})
+      this.setState({ groups: hex_groups })
+      this.setState({ word: '' })
     } else {
       alert("No word to colorize entered")
     }
   }
+
+  
 
   render() {
     return (
       <Container>
         <Row>
           <Form>
-            <Form.Control 
-              placeholder="Message to Colorize" 
-              value={this.state.word} 
+            <Form.Control
+              placeholder="Message to Colorize"
+              value={this.state.word}
               onChange={this.setWordChange}
-              onKeyPress={this.enterPress}/>
+              onKeyPress={this.enterPress} />
           </Form>
           <Button type="submit" onClick={this.colorize}>Colorize</Button>
         </Row>
-        <Row>
+        <Row ref="colorize">
           {this.state.groups.map(
             color =>
-            <Cell color={'#' + color.toString()} height={100} />
+              <Cell color={'#' + color.toString()} height={100} />
           )}
+        </Row>
+        <Row>
+          <button onClick={this.htmlToImageConvert}>Download Image</button>
         </Row>
       </Container>
     )
