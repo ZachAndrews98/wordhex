@@ -5,7 +5,7 @@ const port = 3000
 
 const multer = require("multer")
 const storage = multer.memoryStorage()
-const upload = multer({ storage: storage, limits: { fileSize: 15000 } }).single("image")
+const upload = multer({ storage: storage, limits: { fileSize: 100000 } })
 
 const getColors = require('get-image-colors')
 const sizeOf = require('buffer-image-size')
@@ -73,8 +73,8 @@ async function analyze_image(image_buffer) {
     let color_list = []
     await getColors(image_buffer, 'image/png').then(colors => {
         for (let color of colors) {
-            console.log("COLOR: " + color)
-            color_list.push(color)
+            // console.log("COLOR: " + color)
+            color_list.push(color.hex().replace("#",""))
         }
     })
     return color_list
@@ -84,15 +84,15 @@ async function analyze_image(image_buffer) {
     // return true
 }
 
-app.post('/convert_word', (req, res) => {
+app.post('/words', (req, res) => {
     console.log(req.body)
     let hex_groups = convert_word(req.body.word)
     res.send({ "hex_groups": hex_groups })
 })
 
-app.post('/convert_color', (req, res) => {
+app.post('/colors', (req, res) => {
     console.log(req.body)
-    let word = convert_color(req.body.color)
+    let word = convert_color(req.body.colors)
     res.send({ "word": word })
 })
 
@@ -103,37 +103,16 @@ app.post('/convert_color', (req, res) => {
 //     res.sendStatus(200)
 //   })
 
-app.post("/upload", function (req, res) {
-    // analyze_image(req.file.buffer)
-    upload(req, res, function (err) {
-        if (err instanceof multer.MulterError) {
-            return {
-                "status": 400,
-                "message": "File size too large"
-            }
-        } else if (err) {
-            return {
-                "status": 500,
-                "message": "Internal server error"
-            }
-        }
-        console.log(req.body)
-        console.log(req.file)
-        let colors = analyze_image(req.file.buffer)
-        console.log(colors)
-        let test = convert_color(colors)
-        res.sendStatus(200)
-        // let dimensions = sizeOf(req.file.buffer)
-        // console.log(dimensions)
-    })
-
-    // if (success.status === 200) {
-    //     res.sendStatus(200)
-    // } else {
-    //     res.sendStatus(success.status)
-    //     res.send(success)
-    // }
-})
+app.post("/upload", upload.single("image"), async function (req, res) {
+    console.log(req.file);
+    console.log(req.body.extra);
+    let colors = await analyze_image(req.file.buffer)
+    colors.push(req.body.extra)
+    console.log("COLORS: ", colors)
+    let word = convert_color(colors)
+    // res.sendStatus(200);
+    res.send({ "word": word })
+  });
 
 
 app.listen(port, () => {

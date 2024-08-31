@@ -1,0 +1,141 @@
+version: "3.7"
+
+services:
+
+  kong-ee-database:
+    container_name: kong-wordhex-database
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    networks:
+      - kong-wordhex-net
+    environment:
+      POSTGRES_USER: "kong"
+      POSTGRES_PASSWORD: "kong"
+      POSTGRES_DB: "kong"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "kong"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+    stdin_open: true
+    tty: true
+    
+  kong-migrations:
+    container_name: kong-wordhex-migrations
+    # image: kong-ee
+    image: kong/kong-gateway:3.4.1.0
+    # image: kong:demo
+    depends_on:
+      - kong-ee-database
+    networks:
+      - kong-wordhex-net
+    environment:
+      KONG_DATABASE: "postgres"
+      KONG_PG_HOST: "kong-ee-database"
+      KONG_PG_PASSWORD: "kong"
+      KONG_PASSWORD: "kong"
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure      
+    command: ["/bin/sh", "-c", "sleep 5 && kong migrations bootstrap --v"]
+
+  kong-ee:
+    # image: kong-ee
+    image: kong/kong-gateway:3.4.1.0
+    # image: kong:demo
+    container_name: kong-wordhex
+    depends_on:
+      - kong-migrations
+    networks:
+      - kong-wordhex-net      
+    environment:
+      KONG_DATABASE: "postgres"
+      KONG_PG_HOST: "kong-ee-database"
+      KONG_PG_PASSWORD: "kong"
+      KONG_LICENSE_DATA: '{"license":{"version":1,"signature":"95771dd98a0cd8bfd2172f702ba605f20d82539abbcb87ef1bf55885f35aa4f9904eb8b1dafcafe7c3c4a930f7afdbaa8313cd805a31ed6e51aab9837c18a415","payload":{"customer":"MS3","license_creation_date":"2023-04-05","product_subscription":"Kong Enterprise Subscription","support_plan":"Platinum","admin_seats":"1","dataplanes":"100","license_expiration_date":"2024-04-05","license_key":"0011K00002JKCLRQA5_a1V1K0000099xTTUAY"}}}'
+      KONG_ADMIN_ACCESS_LOG: "/dev/stdout"
+      KONG_ADMIN_GUI_URL: "http://localhost:8002"
+      KONG_ADMIN_GUI_ACCESS_LOG: "/dev/stdout"
+      KONG_ADMIN_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001, 0.0.0.0:8444 ssl"
+      KONG_ADMIN_GUI_AUTH: "basic-auth"
+      KONG_ADMIN_GUI_SESSION_CONF: "{\"secret\":\"secret\",\"cookie_secure\":false}"      
+      KONG_PORTAL: "on"
+      KONG_PORTAL_GUI_HOST: "localhost:8003"
+      KONG_PORTAL_AUTH: "basic-auth"
+      KONG_PORTAL_SESSION_CONF: "{\"cookie_name\":\"portal_session\",\"secret\":\"secret\",\"storage\":\"kong\"}"
+      KONG_PROXY_LISTEN: "0.0.0.0:8000"
+      KONG_PROXY_ACCESS_LOG: "/dev/stdout"
+      KONG_PROXY_ERROR_LOG: "/dev/stderr"
+      KONG_ENFORCE_RBAC: "on"
+      KONG_PLUGINS: "bundled"
+      KONG_LUA_PACKAGE_PATH: "/usr/local/share/lua/5.1/?.lua;;/usr/local/custom/?.lua;;"
+      KONG_STATUS_LISTEN: "0.0.0.0:8100"
+
+      KONG_NGINX_HTTP_CLIENT_MAX_BODY_SIZE: 10m
+      KONG_CLIENT_BODY_BUFFER_SIZE: 10m
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 3m
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 4 3m
+      KONG_NGINX_PROXY_PROXY_BUSY_BUFFERS_SIZE: 3m
+      # Response Stuff
+      KONG_NGINX_HTTP_PROXY_BUFFER_SIZE: 256k
+      KONG_NGINX_HTTP_PROXY_BUFFERS: 4 256k
+      KONG_NGINX_HTTP_PROXY_BUSY_BUFFERS_SIZE: 256k
+      # Request Stuff
+      KONG_NGINX_HTTP_CLIENT_HEADER_BUFFER_SIZE: 256k
+      KONG_NGINX_HTTP_LARGE_CLIENT_HEADER_BUFFERS: 4 256k
+    # volumes:
+    ports:
+      - "8000:8000" # PROXY HTTP
+      - "8443:8443" # PROXY HTTP
+      - "8001:8001" # Admin API HTTP
+      - "8444:8444" # Admin API HTTPS
+      - "8002:8002" # Admin GUI HTTP
+      - "8445:8445" # Admin GUI HTTPS
+      - "8003:8003" # Dev portal
+      - "8004:8004" # Dev portal
+      - "8100:8100" # Status endpoint
+    healthcheck:
+      test: 
+        - "CMD"
+        - "kong"
+        - "health"
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+    command: 
+      - "/bin/sh"
+      - "-c"
+      - "sleep 5 && 
+        kong migrations up && 
+        sleep 15 && 
+        kong migrations finish &&
+        sleep 5 && 
+        kong migrations bootstrap --vv && 
+        printenv && 
+        kong start -vv &&  \\"
+    # command: ["/bin/sh", "-c","sleep 15 && printenv && kong start"]
+  
+  wordhex:
+    image: wordhex:api
+    container_name: api
+    ports:
+    - "3000:3000"
+    restart: on-failure
+    networks:
+      - kong-wordhex-net 
+
+networks:
+  kong-wordhex-net:
+    external: false
+    driver: bridge

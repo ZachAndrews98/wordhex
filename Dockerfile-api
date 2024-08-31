@@ -1,0 +1,13 @@
+FROM node:slim
+
+WORKDIR /usr/src/app
+
+COPY . .
+
+RUN npm install
+RUN apt update -y
+RUN apt install curl -y
+
+EXPOSE 3000
+
+CMD [ "node", "index.js" ]
